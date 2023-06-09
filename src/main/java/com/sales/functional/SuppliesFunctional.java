@@ -2,6 +2,7 @@ package com.sales.functional;
 
 
 import com.sales.functional.database.Database;
+import com.sales.functional.entities.Product;
 import com.sales.functional.entities.Sale;
 
 import java.time.ZoneId;
@@ -86,6 +87,19 @@ public class SuppliesFunctional {
                 System.out.print("Cual es el numero de satisfacción por que quiere filtrar (1-5): ");
                 salesBySatisfaction(sc.nextLine());
                 break;
+            case "6":
+                System.out.print("Monto total pagado en cada venta): ");
+                totalSales();
+                break;
+            case "7":
+                System.out.print("Ventas en donde compró una mujer en la tienda(in store): ");
+                womenStore();
+                break;
+
+            case "9":
+                System.out.print("Cuantos hombres y mujeres usaron cupón: \n");
+                cuponGender();
+                break;
             default:
                 System.out.println("ERROR en el input, este metodo no ha sido creado. Intente de nuevo");
         }
@@ -128,4 +142,30 @@ public class SuppliesFunctional {
         Consumer<String> satisfaction = satis -> sales.stream().filter(sale -> sale.getCustomer().getSatisfaction().toString().equals(satis)).collect(Collectors.toCollection(ArrayList::new)).forEach(System.out::println);
         satisfaction.accept(inSatis);
     }
+
+    public static void womenStore(){
+
+        Predicate<Sale> womenInStore = sale -> sale.getCustomer().getGender().equals("F") && sale.getPurchasedMethod().equals("In store");
+        ArrayList<Sale> result = sales.stream().filter(womenInStore).collect(Collectors.toCollection(ArrayList::new));
+        result.forEach(System.out::println);
+    }
+    public static void cuponGender(){
+        Predicate<Sale> couponMale = sale -> sale.getCustomer().getGender().equals("M") && sale.getCouponUsed();
+        Predicate<Sale> couponFemale = sale -> sale.getCustomer().getGender().equals("F") && sale.getCouponUsed();
+        Map<String,Long> usage  = new HashMap<>(){{
+            put("Hombres que usan cupon",sales.stream().filter(couponMale).count());
+            put("Mujeres que usan cupon",sales.stream().filter(couponFemale).count());
+        }};
+        usage.forEach((key,value)-> System.out.println(key+": "+value));
+
+    }
+
+    public static void totalSales(){
+        ArrayList<Sale> result = sales.stream().map(sales -> {
+            ArrayList<Double> prices = sales.getItems().stream().map(product -> product.getPrice()).sum();
+            return prices;
+        }).collect(Collectors.toCollection(ArrayList::new));
+        result.forEach(System.out::println);
+    }
+
 }

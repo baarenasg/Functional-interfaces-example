@@ -100,6 +100,10 @@ public class SuppliesFunctional {
                 System.out.print("Cuantos hombres y mujeres usaron cupón: \n");
                 cuponGender();
                 break;
+            case "10":
+                maxAndMinSales();
+                break;
+
             default:
                 System.out.println("ERROR en el input, este metodo no ha sido creado. Intente de nuevo");
         }
@@ -161,11 +165,21 @@ public class SuppliesFunctional {
     }
 
     public static void totalSales(){
-        ArrayList<Sale> result = sales.stream().map(sales -> {
-            ArrayList<Double> prices = sales.getItems().stream().map(product -> product.getPrice()).sum();
-            return prices;
-        }).collect(Collectors.toCollection(ArrayList::new));
-        result.forEach(System.out::println);
+        Consumer<Sale> saleConsumer = sale -> System.out.println("El cliente " + sale.getCustomer().getEmail() + " pagó " + sale.getTotal());
+        Function<List<Product>, Double> itemsPriceFunction = products -> products.stream().mapToDouble(Product::getPrice).sum();
+        sales.forEach(sale -> {
+            sale.setTotal(itemsPriceFunction.apply(sale.getItems()));
+            saleConsumer.accept(sale);
+        });
     }
-
+    private static void maxAndMinSales() {
+        Function<List<Product>, Double> itemsPriceFunction = products -> products.stream().mapToDouble(Product::getPrice).sum();
+        sales.forEach(sale -> {
+            sale.setTotal(itemsPriceFunction.apply(sale.getItems()));
+        });
+        Map<String, Sale> salesMaxMin = new HashMap<>();
+        salesMaxMin.put("Max", sales.stream().max(Comparator.comparingDouble(Sale::getTotal)).orElseThrow());
+        salesMaxMin.put("Min", sales.stream().min(Comparator.comparingDouble(Sale::getTotal)).orElseThrow());
+        salesMaxMin.forEach((key, value) -> System.out.println(key + ": " + value));
+    }
 }
